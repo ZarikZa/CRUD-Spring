@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Магазин унитазов - Главная</title>
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 40px; text-align: center; }
+        .nav-buttons { margin: 30px 0; }
+        .btn { display: inline-block; padding: 15px 30px; margin: 10px;
+            text-decoration: none; border-radius: 5px; font-size: 18px;
+            background: #007bff; color: white; border: none; cursor: pointer; }
+        .btn-categories { background: #28a745; }
+        .btn-toilets { background: #dc3545; }
+        h1 { color: #333; margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Добро пожаловать в магазин унитазов</h1>
+    <p>Выберите раздел для управления данными:</p>
+
+    <div class="nav-buttons">
+        <a th:href="@{/categories}" class="btn btn-categories">Управление категориями</a>
+        <a th:href="@{/toilets}" class="btn btn-toilets">Управление унитазами</a>
+    </div>
+</div>
+</body>
+</html>

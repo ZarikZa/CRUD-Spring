@@ -1,6 +1,5 @@
 package com.mpt.journal.model;
 
-
 public class ToiletModel {
     private int id;
     private String name;
@@ -10,7 +9,7 @@ public class ToiletModel {
     private double price;
     private int stockQuantity;
     private String material;
-    private CategoryModel category;
+    private int categoryId; // ID категории вместо объекта
     private boolean waterSaving;
     private boolean isActive;
 
@@ -19,7 +18,7 @@ public class ToiletModel {
     }
 
     public ToiletModel(int id, String name, String brand, String model, String color,
-                       double price, int stockQuantity, String material, CategoryModel category,
+                       double price, int stockQuantity, String material, int categoryId,
                        boolean waterSaving) {
         this();
         this.id = id;
@@ -30,7 +29,7 @@ public class ToiletModel {
         this.price = price;
         this.stockQuantity = stockQuantity;
         this.material = material;
-        this.category = category;
+        this.categoryId = categoryId;
         this.waterSaving = waterSaving;
     }
 
@@ -58,8 +57,8 @@ public class ToiletModel {
     public String getMaterial() { return material; }
     public void setMaterial(String material) { this.material = material; }
 
-    public CategoryModel getCategory() { return category; }
-    public void setCategory(CategoryModel category) { this.category = category; }
+    public int getCategoryId() { return categoryId; }
+    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
 
     public boolean isWaterSaving() { return waterSaving; }
     public void setWaterSaving(boolean waterSaving) { this.waterSaving = waterSaving; }

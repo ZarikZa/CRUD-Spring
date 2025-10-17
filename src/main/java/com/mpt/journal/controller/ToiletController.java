@@ -6,22 +6,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
+@RequestMapping("/toilets")
 public class ToiletController {
 
     @Autowired
     private ToiletService toiletService;
 
-    @GetMapping("/toilets")
+    @GetMapping
     public String getAllToilets(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String maxPrice,
-            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) Integer categoryId,
             Model model) {
 
         List<ToiletModel> sourceList;
@@ -38,16 +42,24 @@ public class ToiletController {
         if (search != null && !search.isEmpty()) {
             sourceList = toiletService.searchToilets(search);
             totalCount = sourceList.size();
-        } else if (brand != null && !brand.isEmpty() || maxPriceValue != null || categoryName != null && !categoryName.isEmpty()) {
-            sourceList = toiletService.filterToilets(brand, maxPriceValue, categoryName);
+        } else if (brand != null && !brand.isEmpty() || maxPriceValue != null || categoryId != null) {
+            sourceList = toiletService.filterToilets(brand, maxPriceValue, categoryId);
             totalCount = sourceList.size();
         } else {
-            sourceList = toiletService.findActiveToilets();
+            sourceList = toiletService.findAllToilets();
             totalCount = sourceList.size();
         }
 
         List<ToiletModel> toilets = toiletService.getToiletsWithPagination(page, size, sourceList);
         int totalPages = (int) Math.ceil((double) totalCount / size);
+
+        Map<Integer, String> categoryNames = new HashMap<>();
+        for (ToiletModel toilet : toilets) {
+            if (!categoryNames.containsKey(toilet.getCategoryId())) {
+                String categoryName = toiletService.getCategoryNameById(toilet.getCategoryId());
+                categoryNames.put(toilet.getCategoryId(), categoryName);
+            }
+        }
 
         model.addAttribute("toilets", toilets);
         model.addAttribute("currentPage", page);
@@ -57,104 +69,76 @@ public class ToiletController {
         model.addAttribute("searchTerm", search);
         model.addAttribute("filterBrand", brand);
         model.addAttribute("filterMaxPrice", maxPriceValue);
-        model.addAttribute("filterCategory", categoryName);
+        model.addAttribute("filterCategoryId", categoryId);
         model.addAttribute("brands", toiletService.getAllBrands());
         model.addAttribute("categories", toiletService.getAllCategories());
+        model.addAttribute("categoryNames", categoryNames);
 
-        return "toiletList";
+        return "toilets";
     }
 
-    @GetMapping("/toilets/add")
-    public String showAddForm(Model model) {
-        model.addAttribute("toilet", new ToiletModel());
-        model.addAttribute("categories", toiletService.getAllCategories());
-        return "addToilet";
-    }
+    @PostMapping("/add")
+    public String addToilet(@RequestParam String name,
+                            @RequestParam String brand,
+                            @RequestParam String modelName,
+                            @RequestParam String color,
+                            @RequestParam double price,
+                            @RequestParam int stockQuantity,
+                            @RequestParam String material,
+                            @RequestParam int categoryId,
+                            @RequestParam(defaultValue = "false") boolean waterSaving) {
 
-    @PostMapping("/toilets/add")
-    public String addToilet(@ModelAttribute ToiletModel toilet,
-                            @RequestParam int categoryId) {
-        CategoryModel category = toiletService.findCategoryById(categoryId);
-        toilet.setCategory(category);
+        ToiletModel toilet = new ToiletModel(0, name, brand, modelName, color,
+                price, stockQuantity, material, categoryId, waterSaving);
         toiletService.addToilet(toilet);
         return "redirect:/toilets";
     }
 
-    @GetMapping("/toilets/edit/{id}")
-    public String showEditForm(@PathVariable int id, Model model) {
-        ToiletModel toilet = toiletService.findToiletById(id);
-        if (toilet == null || !toilet.isActive()) {
-            return "redirect:/toilets";
-        }
-        model.addAttribute("toilet", toilet);
-        model.addAttribute("categories", toiletService.getAllCategories());
-        return "editToilet";
-    }
+    @PostMapping("/update")
+    public String updateToilet(@RequestParam int id,
+                               @RequestParam String name,
+                               @RequestParam String brand,
+                               @RequestParam String model,
+                               @RequestParam String color,
+                               @RequestParam double price,
+                               @RequestParam int stockQuantity,
+                               @RequestParam String material,
+                               @RequestParam int categoryId,
+                               @RequestParam(defaultValue = "false") boolean waterSaving) {
 
-    @PostMapping("/toilets/edit")
-    public String updateToilet(@ModelAttribute ToiletModel toilet,
-                               @RequestParam int categoryId) {
-        CategoryModel category = toiletService.findCategoryById(categoryId);
-        toilet.setCategory(category);
+        ToiletModel toilet = new ToiletModel(id, name, brand, model, color,
+                price, stockQuantity, material, categoryId, waterSaving);
         toiletService.updateToilet(toilet);
         return "redirect:/toilets";
     }
 
-    @GetMapping("/toilets/delete/{id}")
-    public String showDeleteForm(@PathVariable int id, Model model) {
-        ToiletModel toilet = toiletService.findToiletById(id);
-        if (toilet == null || !toilet.isActive()) {
-            return "redirect:/toilets";
-        }
-        model.addAttribute("toilet", toilet);
-        return "deleteToilet";
-    }
-
-    @PostMapping("/toilets/delete")
+    @PostMapping("/delete")
     public String deleteToilet(@RequestParam int id) {
         toiletService.deleteToilet(id);
         return "redirect:/toilets";
     }
 
-    @GetMapping("/toilets/soft-delete/{id}")
-    public String showSoftDeleteForm(@PathVariable int id, Model model) {
-        ToiletModel toilet = toiletService.findToiletById(id);
-        if (toilet == null || !toilet.isActive()) {
-            return "redirect:/toilets";
-        }
-        model.addAttribute("toilet", toilet);
-        return "softDeleteToilet";
-    }
-
-    @PostMapping("/toilets/soft-delete")
+    @PostMapping("/soft-delete")
     public String softDeleteToilet(@RequestParam int id) {
         toiletService.softDeleteToilet(id);
         return "redirect:/toilets";
     }
 
-    @GetMapping("/toilets/multiple-delete")
-    public String showMultipleDeleteForm(Model model) {
-        List<ToiletModel> activeToilets = toiletService.findActiveToilets();
-        model.addAttribute("toilets", activeToilets);
-        return "multipleDelete";
-    }
-
-    @PostMapping("/toilets/multiple-delete")
-    public String deleteMultipleToilets(@RequestParam("ids") List<Integer> ids) {
-        toiletService.deleteMultipleToilets(ids);
+    @PostMapping("/delete-multiple")
+    public String deleteMultipleToilets(@RequestParam(value = "ids", required = false) List<Integer> ids) {
+        System.out.println("DELETE MULTIPLE: " + ids);
+        if (ids != null && !ids.isEmpty()) {
+            toiletService.deleteMultipleToilets(ids);
+        }
         return "redirect:/toilets";
     }
 
-    @GetMapping("/toilets/multiple-soft-delete")
-    public String showMultipleSoftDeleteForm(Model model) {
-        List<ToiletModel> activeToilets = toiletService.findActiveToilets();
-        model.addAttribute("toilets", activeToilets);
-        return "multipleSoftDelete";
-    }
-
-    @PostMapping("/toilets/multiple-soft-delete")
-    public String softDeleteMultipleToilets(@RequestParam("ids") List<Integer> ids) {
-        toiletService.softDeleteMultipleToilets(ids);
+    @PostMapping("/soft-delete-multiple")
+    public String softDeleteMultipleToilets(@RequestParam(value = "ids", required = false) List<Integer> ids) {
+        System.out.println("SOFT DELETE MULTIPLE: " + ids);
+        if (ids != null && !ids.isEmpty()) {
+            toiletService.softDeleteMultipleToilets(ids);
+        }
         return "redirect:/toilets";
     }
 }

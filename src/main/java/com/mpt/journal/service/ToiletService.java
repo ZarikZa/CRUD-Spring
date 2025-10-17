@@ -18,12 +18,12 @@ public interface ToiletService {
     void deleteMultipleToilets(List<Integer> ids);
     void softDeleteMultipleToilets(List<Integer> ids);
     List<ToiletModel> searchToilets(String searchTerm);
-    List<ToiletModel> filterToilets(String brand, Double maxPrice, String categoryName);
+    List<ToiletModel> filterToilets(String brand, Double maxPrice, Integer categoryId);
     List<ToiletModel> getToiletsWithPagination(int page, int size, List<ToiletModel> sourceList);
     long getTotalToiletsCount(List<ToiletModel> sourceList);
     List<String> getAllBrands();
     List<String> getAllMaterials();
-    List<String> getAllCategoryNames();
     List<CategoryModel> getAllCategories();
     CategoryModel findCategoryById(int id);
+    String getCategoryNameById(int categoryId);
 }

@@ -25,11 +25,11 @@ public class InMemoryToiletServiceImpl implements ToiletService {
 
         if (!categories.isEmpty()) {
             addToilet(new ToiletModel(0, "Компакт унитаз", "Roca", "Dama", "Белый",
-                    15000.0, 10, "Фаянс", categories.get(0), true));
+                    15000.0, 10, "Фаянс", categories.get(0).getId(), true));
             addToilet(new ToiletModel(0, "Подвесной унитаз", "Cersanit", "Style", "Бежевый",
-                    25000.0, 5, "Фарфор", categories.get(1), true));
+                    25000.0, 5, "Фарфор", categories.get(1).getId(), true));
             addToilet(new ToiletModel(0, "Напольный унитаз", "Vitra", "Compact", "Черный",
-                    18000.0, 8, "Фаянс", categories.get(2), false));
+                    18000.0, 8, "Фаянс", categories.get(2).getId(), false));
 
             for (int i = 1; i <= 15; i++) {
                 CategoryModel category = categories.get(i % categories.size());
@@ -40,7 +40,7 @@ public class InMemoryToiletServiceImpl implements ToiletService {
                         10000 + i * 1000,
                         5 + i,
                         i % 2 == 0 ? "Фаянс" : "Фарфор",
-                        category,
+                        category.getId(),
                         i % 2 == 0));
             }
         }
@@ -97,8 +97,8 @@ public class InMemoryToiletServiceImpl implements ToiletService {
     }
 
     @Override
-    public List<ToiletModel> filterToilets(String brand, Double maxPrice, String categoryName) {
-        return toiletRepository.filterToilets(brand, maxPrice, categoryName);
+    public List<ToiletModel> filterToilets(String brand, Double maxPrice, Integer categoryId) {
+        return toiletRepository.filterToilets(brand, maxPrice, categoryId);
     }
 
     @Override
@@ -121,15 +121,19 @@ public class InMemoryToiletServiceImpl implements ToiletService {
         return toiletRepository.getAllMaterials().stream().sorted().collect(Collectors.toList());
     }
 
-    public List<String> getAllCategoryNames() {
-        return categoryService.getAllCategoryNames();
-    }
-
+    @Override
     public List<CategoryModel> getAllCategories() {
         return categoryService.findActiveCategories();
     }
 
+    @Override
     public CategoryModel findCategoryById(int id) {
         return categoryService.findCategoryById(id);
+    }
+
+    @Override
+    public String getCategoryNameById(int categoryId) {
+        CategoryModel category = categoryService.findCategoryById(categoryId);
+        return category != null ? category.getName() : "Неизвестно";
     }
 }

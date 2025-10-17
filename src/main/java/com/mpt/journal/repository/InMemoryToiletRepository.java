@@ -30,7 +30,7 @@ public class InMemoryToiletRepository {
                     t.setPrice(toilet.getPrice());
                     t.setStockQuantity(toilet.getStockQuantity());
                     t.setMaterial(toilet.getMaterial());
-                    t.setCategory(toilet.getCategory());
+                    t.setCategoryId(toilet.getCategoryId());
                     t.setWaterSaving(toilet.isWaterSaving());
                     return t;
                 })
@@ -92,23 +92,21 @@ public class InMemoryToiletRepository {
                                 toilet.getBrand().toLowerCase().contains(term) ||
                                 toilet.getModel().toLowerCase().contains(term) ||
                                 toilet.getColor().toLowerCase().contains(term) ||
-                                toilet.getMaterial().toLowerCase().contains(term) ||
-                                (toilet.getCategory() != null && toilet.getCategory().getName().toLowerCase().contains(term)))
+                                toilet.getMaterial().toLowerCase().contains(term))
                 .collect(Collectors.toList());
     }
 
-    public List<ToiletModel> filterToilets(String brand, Double maxPrice, String categoryName) {
+    public List<ToiletModel> filterToilets(String brand, Double maxPrice, Integer categoryId) {
         List<ToiletModel> activeToilets = findActiveToilets();
 
-        if (brand == null && maxPrice == null && categoryName == null) {
+        if (brand == null && maxPrice == null && categoryId == null) {
             return activeToilets;
         }
 
         return activeToilets.stream()
                 .filter(toilet -> brand == null || brand.isEmpty() || toilet.getBrand().equalsIgnoreCase(brand))
                 .filter(toilet -> maxPrice == null || toilet.getPrice() <= maxPrice)
-                .filter(toilet -> categoryName == null || categoryName.isEmpty() ||
-                        (toilet.getCategory() != null && toilet.getCategory().getName().equalsIgnoreCase(categoryName)))
+                .filter(toilet -> categoryId == null || toilet.getCategoryId() == categoryId)
                 .collect(Collectors.toList());
     }
 

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Управление унитазами</title>
+    <style>
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .search-filters { background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .toilet-form { background: #e9ecef; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .toilet-item { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+        .actions { margin-top: 10px; }
+        .btn { padding: 5px 10px; margin: 2px; text-decoration: none; border-radius: 3px; display: inline-block; border: none; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-home { background: #6c757d; color: white; }
+        .btn-categories { background: #28a745; color: white; }
+        .pagination { margin: 20px 0; }
+        .filter-group { display: inline-block; margin-right: 15px; margin-bottom: 10px; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select, textarea { padding: 8px; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-row .form-group { flex: 1; }
+        .compact-input { width: 80px; }
+        .compact-select { width: 140px; }
+        .edit-form { background: #f8f9fa; padding: 10px; margin-top: 10px; border-radius: 5px; }
+        .toilet-info { margin: 5px 0; }
+        .multiple-actions { background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .checkbox-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .checkbox-label { display: flex; align-items: center; gap: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Управление унитазами</h1>
+        <div>
+            <a th:href="@{/categories}" class="btn btn-categories">Категории</a>
+            <a th:href="@{/}" class="btn btn-home">На главную</a>
+        </div>
+    </div>
+
+    <div class="search-filters">
+        <h3>Поиск и фильтрация</h3>
+        <form method="get" th:action="@{/toilets}">
+            <div class="filter-group">
+                <label>Поиск:</label>
+                <input type="text" name="search" th:value="${searchTerm}" placeholder="Название, бренд, модель...">
+            </div>
+
+            <div class="filter-group">
+                <label>Бренд:</label>
+                <select name="brand">
+                    <option value="">Все бренды</option>
+                    <option th:each="brand : ${brands}"
+                            th:value="${brand}"
+                            th:text="${brand}"
+                            th:selected="${filterBrand == brand}"></option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Макс. цена:</label>
+                <input type="number" name="maxPrice" th:value="${filterMaxPrice}" placeholder="Макс. цена" step="1000">
+            </div>
+
+            <div class="filter-group">
+                <label>Категория:</label>
+                <select name="categoryId">
+                    <option value="">Все категории</option>
+                    <option th:each="category : ${categories}"
+                            th:value="${category.id}"
+                            th:text="${category.name}"
+                            th:selected="${filterCategoryId == category.id}"></option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <button type="submit" class="btn btn-primary">Применить</button>
+                <a th:href="@{/toilets}" class="btn">Сбросить</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="toilet-form">
+        <h3>Добавить новый унитаз</h3>
+        <form method="post" th:action="@{/toilets/add}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Название:</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Бренд:</label>
+                    <input type="text" name="brand" required>
+                </div>
+                <div class="form-group">
+                    <label>Модель:</label>
+                    <input type="text" name="modelName" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Цвет:</label>
+                    <input type="text" name="color" required>
+                </div>
+                <div class="form-group">
+                    <label>Цена:</label>
+                    <input type="number" step="0.01" name="price" required>
+                </div>
+                <div class="form-group">
+                    <label>Количество:</label>
+                    <input type="number" name="stockQuantity" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Материал:</label>
+                    <input type="text" name="material" required>
+                </div>
+                <div class="form-group">
+                    <label>Категория:</label>
+                    <select name="categoryId" required>
+                        <option value="">Выберите категорию</option>
+                        <option th:each="category : ${categories}"
+                                th:value="${category.id}"
+                                th:text="${category.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="margin-top: 25px;">
+                        <input type="checkbox" name="waterSaving"> Водосберегающий
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Добавить унитаз</button>
+        </form>
+    </div>
+
+    <div class="pagination" th:if="${totalPages > 1}">
+        <span>Страница [[${currentPage}]] из [[${totalPages}]] (Всего: [[${totalCount}]])</span>
+        <div>
+            <a th:if="${currentPage > 1}"
+               th:href="@{/toilets(page=${currentPage - 1}, size=${pageSize}, search=${searchTerm}, brand=${filterBrand}, maxPrice=${filterMaxPrice}, categoryId=${filterCategoryId})}" class="btn">← Назад</a>
+
+            <span th:each="i : ${#numbers.sequence(1, totalPages)}">
+                <a th:if="${i != currentPage}"
+                   th:href="@{/toilets(page=${i}, size=${pageSize}, search=${searchTerm}, brand=${filterBrand}, maxPrice=${filterMaxPrice}, categoryId=${filterCategoryId})}" class="btn"
+                   th:text="${i}"></a>
+                <strong th:if="${i == currentPage}" th:text="${i}" style="padding: 5px 10px; background: #007bff; color: white;"></strong>
+            </span>
+
+            <a th:if="${currentPage < totalPages}"
+               th:href="@{/toilets(page=${currentPage + 1}, size=${pageSize}, search=${searchTerm}, brand=${filterBrand}, maxPrice=${filterMaxPrice}, categoryId=${filterCategoryId})}" class="btn">Вперед →</a>
+        </div>
+    </div>
+
+    <div class="toilet-list">
+        <h3>Список унитазов</h3>
+
+        <div th:if="${totalCount == 0}">
+            <p>Унитазы не найдены.</p>
+        </div>
+
+        <form method="post" th:action="@{/toilets/delete-multiple}" id="multipleDeleteForm">
+            <div class="multiple-actions" th:if="${totalCount > 0}">
+                <h4>Множественные действия:</h4>
+                <button type="submit" class="btn btn-danger">Удалить выбранные</button>
+            </div>
+        </form>
+
+        <form method="post" th:action="@{/toilets/soft-delete-multiple}" id="multipleSoftDeleteForm">
+            <div class="multiple-actions" th:if="${totalCount > 0}">
+                <button type="submit" class="btn btn-warning">Скрыть выбранные</button>
+            </div>
+        </form>
+
+        <div th:each="toilet : ${toilets}" class="toilet-item">
+            <div class="checkbox-group">
+                <div class="checkbox-label">
+                    <input type="checkbox" name="ids" th:value="${toilet.id}" form="multipleDeleteForm">
+                    <label>Выбрать для удаления</label>
+                </div>
+                <div class="checkbox-label">
+                    <input type="checkbox" name="ids" th:value="${toilet.id}" form="multipleSoftDeleteForm">
+                    <label>Выбрать для скрытия</label>
+                </div>
+            </div>
+
+            <div class="toilet-info">
+                <strong>ID:</strong> [[${toilet.id}]] |
+                <strong>Название:</strong> [[${toilet.name}]] |
+                <strong>Бренд:</strong> [[${toilet.brand}]] |
+                <strong>Модель:</strong> [[${toilet.model}]]
+            </div>
+            <div class="toilet-info">
+                <strong>Цвет:</strong> [[${toilet.color}]] |
+                <strong>Цена:</strong> [[${toilet.price}]] руб. |
+                <strong>В наличии:</strong> [[${toilet.stockQuantity}]] шт.
+            </div>
+            <div class="toilet-info">
+                <strong>Материал:</strong> [[${toilet.material}]] |
+                <strong>Категория:</strong> [[${categoryNames[toilet.categoryId]}]] |
+                <strong>Водосберегающий:</strong> [[${toilet.waterSaving} ? 'Да' : 'Нет']] |
+                <strong>Активный:</strong> [[${toilet.active} ? 'Да' : 'Нет']]
+            </div>
+
+            <div class="actions">
+                <div class="edit-form">
+                    <form method="post" th:action="@{/toilets/update}">
+                        <input type="hidden" name="id" th:value="${toilet.id}">
+                        <input type="text" name="name" th:value="${toilet.name}" required class="compact-input" placeholder="Название">
+                        <input type="text" name="brand" th:value="${toilet.brand}" required class="compact-input" placeholder="Бренд">
+                        <input type="text" name="model" th:value="${toilet.model}" required class="compact-input" placeholder="Модель">
+                        <input type="text" name="color" th:value="${toilet.color}" required class="compact-input" placeholder="Цвет">
+                        <input type="number" step="0.01" name="price" th:value="${toilet.price}" required class="compact-input" placeholder="Цена">
+                        <input type="number" name="stockQuantity" th:value="${toilet.stockQuantity}" required class="compact-input" placeholder="Кол-во">
+                        <input type="text" name="material" th:value="${toilet.material}" required class="compact-input" placeholder="Материал">
+                        <select name="categoryId" required class="compact-select">
+                            <option th:each="category : ${categories}"
+                                    th:value="${category.id}"
+                                    th:text="${category.name}"
+                                    th:selected="${toilet.categoryId == category.id}"></option>
+                        </select>
+                        <label>
+                            <input type="checkbox" name="waterSaving" th:checked="${toilet.waterSaving}"> Водосберег.
+                        </label>
+                        <button type="submit" class="btn btn-primary">Обновить</button>
+                    </form>
+                </div>
+
+                <form method="post" th:action="@{/toilets/delete}" style="display: inline;">
+                    <input type="hidden" name="id" th:value="${toilet.id}">
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+
+                <form method="post" th:action="@{/toilets/soft-delete}" style="display: inline;">
+                    <input type="hidden" name="id" th:value="${toilet.id}">
+                    <button type="submit" class="btn btn-warning">Скрыть</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
